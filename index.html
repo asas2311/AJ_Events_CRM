@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AJ Events - Web-CRM</title>
+    
+    <script>
+        let savedTheme = localStorage.getItem('crm_theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-body-tertiary">
+
+    <nav class="navbar navbar-expand-lg navbar-dark brand-navbar shadow-sm position-relative" style="z-index: 1000;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-calendar-check me-2"></i>AJ Events CRM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" href="index.html"><i class="fa-solid fa-boxes-stacked me-1"></i> Склад</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" style="opacity: 0.7;" href="venues.html"><i class="fa-solid fa-building me-1"></i> Залы и Подрядчики</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center mt-2 mt-lg-0">
+                    <span class="navbar-text text-white me-3">
+                        Менеджер: Akerke
+                    </span>
+                    <button class="btn btn-outline-light btn-sm rounded-circle position-relative" id="themeToggle" title="Сменить тему" style="width: 32px; height: 32px; z-index: 1000;">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 position-relative" style="z-index: 10;">
+        <h2 class="mb-4 fw-bold">Складской учет оборудования</h2>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card brand-card-blue text-white mb-3 shadow-sm custom-rounded border-0 card-hover">
+                    <div class="card-body p-4">
+                        <h5 class="card-title opacity-75">Всего вещей на балансе</h5>
+                        <h2 id="totalItems" class="fw-bold mb-0 display-5">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card brand-card-gold text-white mb-3 shadow-sm custom-rounded border-0 card-hover">
+                    <div class="card-body p-4">
+                        <h5 class="card-title opacity-75">Доступно на складе</h5>
+                        <h2 id="availableItems" class="fw-bold mb-0 display-5">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4 border-0 bg-body custom-rounded">
+            <div class="card-body row align-items-center g-3 p-4">
+                <div class="col-md-3">
+                    <input type="text" id="searchInput" class="form-control rounded-pill px-4" placeholder="Поиск по названию...">
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-light w-100 text-start d-flex justify-content-between align-items-center rounded-pill px-4 shadow-sm custom-select-btn" type="button" data-bs-toggle="dropdown" id="catBtn">
+                            <span id="catText">Все категории</span>
+                            <i class="fa-solid fa-chevron-down text-muted small"></i>
+                        </button>
+                        <ul class="dropdown-menu w-100 shadow-lg border-0 custom-dropdown-menu dropdown-anim" id="filterCategoryMenu"></ul>
+                    </div>
+                    <input type="hidden" id="filterCategory" value="All">
+                </div>
+
+                <div class="col-md-3">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-light w-100 text-start d-flex justify-content-between align-items-center rounded-pill px-4 shadow-sm custom-select-btn" type="button" data-bs-toggle="dropdown" id="statBtn">
+                            <span id="statText">Все статусы</span>
+                            <i class="fa-solid fa-chevron-down text-muted small"></i>
+                        </button>
+                        <ul class="dropdown-menu w-100 shadow-lg border-0 custom-dropdown-menu dropdown-anim" id="filterStatusMenu"></ul>
+                    </div>
+                    <input type="hidden" id="filterStatus" value="All">
+                </div>
+
+                <div class="col-md-3 text-end">
+                    <button class="btn btn-brand-gold w-100 fw-bold rounded-pill shadow-sm" id="openAddModalBtn">
+                        <i class="fa-solid fa-plus me-1"></i> Добавить вещь
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 bg-body custom-rounded overflow-hidden mb-5">
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="custom-thead">
+                        <tr>
+                            <th class="ps-4">№</th>
+                            <th>Наименование</th>
+                            <th>Категория</th>
+                            <th>Описание</th>
+                            <th>Кол-во</th>
+                            <th>Статус</th>
+                            <th class="pe-4">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="itemModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-rounded border-0 shadow-lg modal-anim">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold fs-4" id="modalTitle">Новое оборудование</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="itemForm">
+                        <input type="hidden" id="itemId">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Наименование</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="itemName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Категория (Выберите или впишите)</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="itemCategory" list="categoryList" placeholder="Например: Мебель" required>
+                            <datalist id="categoryList"></datalist>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Описание</label>
+                            <textarea class="form-control custom-rounded p-3" id="itemDesc" rows="2" placeholder="Комплектация, комментарий..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold text-uppercase ms-2">Кол-во</label>
+                                <input type="number" class="form-control rounded-pill px-3" id="itemQty" min="1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold text-uppercase ms-2">Статус (Выберите или впишите)</label>
+                                <input type="text" class="form-control rounded-pill px-3" id="itemStatus" list="statusList" placeholder="Например: Списано" required>
+                                <datalist id="statusList"></datalist>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-brand-gold rounded-pill px-4 fw-bold" id="saveItemBtn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content custom-rounded border-0 shadow-lg modal-anim text-center p-4">
+                <div class="modal-body p-0">
+                    <div class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 80px; height: 80px;">
+                            <i class="fa-solid fa-trash-can fs-1"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-2">Удалить вещь?</h4>
+                    <p class="text-muted mb-4">Эта вещь будет безвозвратно удалена из базы склада.</p>
+                    <input type="hidden" id="deleteItemId">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-danger rounded-pill fw-bold py-2" id="confirmDeleteBtn">Да, удалить</button>
+                        <button type="button" class="btn btn-light rounded-pill py-2" data-bs-dismiss="modal">Отмена</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AJ Events - Залы и Подрядчики</title>
+    
+    <script>
+        let savedTheme = localStorage.getItem('crm_theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-body-tertiary">
+
+    <nav class="navbar navbar-expand-lg navbar-dark brand-navbar shadow-sm position-relative" style="z-index: 1000;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-calendar-check me-2"></i>AJ Events CRM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link text-light" style="opacity: 0.7;" href="index.html"><i class="fa-solid fa-boxes-stacked me-1"></i> Склад</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" href="venues.html"><i class="fa-solid fa-building me-1"></i> Залы и Подрядчики</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center mt-2 mt-lg-0">
+                    <span class="navbar-text text-white me-3">Менеджер: Akerke</span>
+                    <button class="btn btn-outline-light btn-sm rounded-circle position-relative" id="themeToggle" title="Сменить тему" style="width: 32px; height: 32px; z-index: 1000;">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 position-relative" style="z-index: 10;">
+        
+        <ul class="nav nav-pills mb-4 bg-body custom-rounded p-2 shadow-sm d-inline-flex" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4 fw-bold" id="pills-venues-tab" data-bs-toggle="pill" data-bs-target="#pills-venues" type="button" role="tab">
+                    <i class="fa-solid fa-map-location-dot me-2"></i>Бронирование залов
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4 fw-bold ms-2" id="pills-contractors-tab" data-bs-toggle="pill" data-bs-target="#pills-contractors" type="button" role="tab">
+                    <i class="fa-solid fa-users-gear me-2"></i>База подрядчиков
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            
+            <div class="tab-pane fade show active" id="pills-venues" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold mb-0">Расписание площадок</h3>
+                    <button class="btn btn-brand-gold rounded-pill px-4 shadow-sm fw-bold" id="openAddVenueBtn">
+                        <i class="fa-solid fa-plus me-1"></i> Новая бронь
+                    </button>
+                </div>
+                <div class="card shadow-sm border-0 bg-body custom-rounded overflow-hidden">
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="custom-thead">
+                                <tr>
+                                    <th class="ps-4 sortable user-select-none" data-col="date" style="cursor: pointer;" title="Сортировать по дате">
+                                        Дата <i class="fa-solid fa-sort ms-1 opacity-50 sort-icon"></i>
+                                    </th>
+                                    <th class="sortable user-select-none" data-col="venue" style="cursor: pointer;" title="Сортировать по площадке">
+                                        Площадка (Venue) <i class="fa-solid fa-sort ms-1 opacity-50 sort-icon"></i>
+                                    </th>
+                                    <th>Мероприятие</th>
+                                    <th>Клиент</th>
+                                    <th class="sortable user-select-none" data-col="status" style="cursor: pointer;" title="Сортировать по статусу">
+                                        Статус брони <i class="fa-solid fa-sort ms-1 opacity-50 sort-icon"></i>
+                                    </th>
+                                    <th class="pe-4 text-end">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="venuesTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pills-contractors" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold mb-0">Наши подрядчики (Contractors)</h3>
+                    <button class="btn btn-brand-gold rounded-pill px-4 shadow-sm fw-bold" id="openAddContractorBtn">
+                        <i class="fa-solid fa-user-plus me-1"></i> Добавить
+                    </button>
+                </div>
+                <div class="row g-4" id="contractorsGrid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="venueModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-rounded border-0 shadow-lg modal-anim">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold fs-4" id="venueModalTitle">Забронировать площадку</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="venueForm">
+                        <input type="hidden" id="vId">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Дата</label>
+                            <input type="date" class="form-control rounded-pill px-3" id="vDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Название площадки (Зала)</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="vName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Мероприятие</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="vEvent" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold text-uppercase ms-2">Клиент</label>
+                                <input type="text" class="form-control rounded-pill px-3" id="vClient" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold text-uppercase ms-2">Статус (Впишите или выберите)</label>
+                                <input type="text" class="form-control rounded-pill px-3" id="vStatus" list="vStatusList" placeholder="Статус..." required>
+                                <datalist id="vStatusList">
+                                    <option value="Ожидает предоплату"></option>
+                                    <option value="Оплачено"></option>
+                                    <option value="Подтверждено"></option>
+                                </datalist>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-brand-gold rounded-pill px-4 fw-bold" id="saveVenueBtn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="contractorModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-rounded border-0 shadow-lg modal-anim">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold fs-4" id="contractorModalTitle">Новый подрядчик</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="contractorForm">
+                        <input type="hidden" id="cId">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">ФИО / Название компании</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="cName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Профессия / Роль</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="cRole" placeholder="Например: Фотограф" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Контактный телефон</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="cPhone" placeholder="+7 (___) ___-__-__" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase ms-2">Иконка специализации (Впишите или выберите)</label>
+                            <input type="text" class="form-control rounded-pill px-3" id="cIcon" list="cIconList" placeholder="fa-user, fa-star или свое..." required>
+                            <datalist id="cIconList">
+                                <option value="fa-user">Человек (Универсал)</option>
+                                <option value="fa-headphones">Звукорежиссер</option>
+                                <option value="fa-lightbulb">Световик</option>
+                                <option value="fa-video">Видео/Трансляция</option>
+                                <option value="fa-camera">Фотограф</option>
+                                <option value="fa-truck-fast">Водитель/Логист</option>
+                            </datalist>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-brand-gold rounded-pill px-4 fw-bold" id="saveContractorBtn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content custom-rounded border-0 shadow-lg modal-anim text-center p-4">
+                <div class="modal-body p-0">
+                    <div class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 80px; height: 80px;">
+                            <i class="fa-solid fa-trash-can fs-1"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-2">Удалить?</h4>
+                    <p class="text-muted mb-4">Эти данные будут безвозвратно удалены из базы.</p>
+                    <input type="hidden" id="deleteTargetType">
+                    <input type="hidden" id="deleteTargetId">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-danger rounded-pill fw-bold py-2" id="confirmDeleteBtn">Да, удалить</button>
+                        <button type="button" class="btn btn-light rounded-pill py-2" data-bs-dismiss="modal">Отмена</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="venues.js"></script>
+</body>
+</html>
